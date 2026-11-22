@@ -1,0 +1,32 @@
+{
+  "projects": [
+    {
+      "name": "Northstar onboarding",
+      "owner": "Mona Patel",
+      "status": "Active",
+      "recentActivity": "Completed the first-run flow review; handoff notes are ready for engineering.",
+      "priority": "High"
+    },
+    {
+      "name": "Atlas reporting",
+      "owner": "Devon Lee",
+      "status": "At risk",
+      "recentActivity": "Data-provider access is still pending and may shift the validation milestone.",
+      "priority": "Critical"
+    },
+    {
+      "name": "Design system refresh",
+      "owner": "Priya Shah",
+      "status": "Planned",
+      "recentActivity": "Collected component feedback from product and support for the next planning session.",
+      "priority": "Medium"
+    },
+    {
+      "name": "Customer insights",
+      "owner": "Alex Chen",
+      "status": "In progress",
+      "recentActivity": "The interview synthesis is complete; the team is reviewing the top opportunities.",
+      "priority": "Low"
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7fb" />
+    <title>Project Pulse</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="dashboard">
+      <header class="dashboard-header">
+        <div class="brand-mark" aria-hidden="true">P</div>
+        <div class="header-copy">
+          <p class="eyebrow">Portfolio overview</p>
+          <h1>Project Pulse</h1>
+          <p class="dashboard-intro">A clear view of what’s moving, what’s next, and where the team needs a hand.</p>
+        </div>
+        <div class="header-aside" aria-hidden="true">
+          <span class="pulse-dot"></span>
+          <span>Team snapshot</span>
+        </div>
+      </header>
+
+      <section class="project-board" aria-labelledby="projects-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Across the portfolio</p>
+            <h2 id="projects-heading">Projects</h2>
+          </div>
+          <p id="project-count" class="project-count"></p>
+        </div>
+
+        <p id="load-status" class="load-status" role="status" aria-live="polite">Loading projects…</p>
+        <div id="project-list" class="project-grid" aria-busy="true"></div>
+      </section>
+
+      <footer class="dashboard-footer">
+        <span class="footer-mark" aria-hidden="true"></span>
+        <p>One shared view. Better momentum.</p>
+      </footer>
+    </main>
+
+    <script>
+      const projectList = document.querySelector("#project-list");
+      const loadStatus = document.querySelector("#load-status");
+      const projectCount = document.querySelector("#project-count");
+
+      function displayValue(value, fallback = "Not provided") {
+        if (typeof value === "string" && value.trim()) return value.trim();
+        if (typeof value === "number" && Number.isFinite(value)) return String(value);
+        return fallback;
+      }
+
+      function stateClass(value) {
+        const normalized = displayValue(value, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        return normalized || "unknown";
+      }
+
+      function createField(label, value, className) {
+        const wrapper = document.createElement("div");
+        wrapper.className = className;
+
+        const heading = document.createElement("p");
+        heading.className = "field-label";
+        heading.textContent = label;
+
+        const content = document.createElement("p");
+        content.className = "field-value";
+        content.textContent = displayValue(value);
+
+        wrapper.append(heading, content);
+        return wrapper;
+      }
+
+      function createProjectCard(project, index) {
+        const card = document.createElement("article");
+        card.className = "project-card";
+        card.setAttribute("aria-labelledby", `project-title-${index}`);
+
+        const top = document.createElement("div");
+        top.className = "card-topline";
+
+        const title = document.createElement("h3");
+        title.className = "project-name";
+        title.id = `project-title-${index}`;
+        title.textContent = displayValue(project.name, "Untitled project");
+
+        const status = document.createElement("span");
+        status.className = `project-status status-${stateClass(project.status)}`;
+        status.textContent = displayValue(project.status);
+        top.append(title, status);
+
+        const owner = createField("Project owner", project.owner, "project-owner");
+        const activity = createField("Recent activity", project.recentActivity, "project-activity");
+
+        const bottom = document.createElement("div");
+        bottom.className = "card-bottomline";
+        const priorityLabel = document.createElement("span");
+        priorityLabel.className = "field-label";
+        priorityLabel.textContent = "Priority";
+        const priority = document.createElement("span");
+        priority.className = `project-priority priority-${stateClass(project.priority)}`;
+        priority.textContent = displayValue(project.priority);
+        bottom.append(priorityLabel, priority);
+
+        card.append(top, owner, activity, bottom);
+        return card;
+      }
+
+      function showError(error) {
+        console.error("Unable to load Project Pulse data:", error);
+        loadStatus.textContent = "We couldn’t load the project data. Check that project-data.json is valid, then reload the page.";
+        loadStatus.classList.add("load-status-error");
+        projectList.replaceChildren();
+        projectList.setAttribute("aria-busy", "false");
+      }
+
+      async function loadProjects() {
+        try {
+          const response = await fetch("project-data.json");
+          if (!response.ok) {
+            throw new Error(`Project data request failed with status ${response.status}`);
+          }
+
+          const data = await response.json();
+          if (!data || !Array.isArray(data.projects)) {
+            throw new Error('Project data must contain a "projects" array');
+          }
+
+          projectCount.textContent = `${data.projects.length} ${data.projects.length === 1 ? "project" : "projects"}`;
+          if (data.projects.length === 0) {
+            loadStatus.textContent = "No projects yet. Add a project to project-data.json to get started.";
+            projectList.replaceChildren();
+          } else {
+            loadStatus.textContent = "";
+            projectList.replaceChildren(...data.projects.map(createProjectCard));
+          }
+          projectList.setAttribute("aria-busy", "false");
+        } catch (error) {
+          showError(error);
+        }
+      }
+
+      loadProjects();
+    </script>
+  </body>
+</html>
